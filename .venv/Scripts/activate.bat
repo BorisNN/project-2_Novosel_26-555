@@ -26,7 +26,7 @@
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-@for %%i in ("D:\Users\novos\OneDrive\Рабочий стол\МИФИ\Практикум\Программирование на Python\!Git\project-2_Novosel_26-555\.venv") do @set "VIRTUAL_ENV=%%~fi"
+@for %%i in ("D:\!Git\project-2_Novosel_26-555\.venv") do @set "VIRTUAL_ENV=%%~fi"
 
 @set "VIRTUAL_ENV_PROMPT=primitive-db"
 @if NOT DEFINED VIRTUAL_ENV_PROMPT (

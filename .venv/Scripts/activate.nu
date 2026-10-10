@@ -69,7 +69,7 @@ export-env {
         }
     }
 
-    const virtual_env = 'D:\Users\novos\OneDrive\Рабочий стол\МИФИ\Практикум\Программирование на Python\!Git\project-2_Novosel_26-555\.venv'
+    const virtual_env = 'D:\!Git\project-2_Novosel_26-555\.venv'
     let bin = 'Scripts'
     let path_name = if (has-env 'Path') { 'Path' } else { 'PATH' }
     let venv_path = ([$virtual_env $bin] | path join)

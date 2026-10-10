@@ -79,7 +79,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV 'D:\Users\novos\OneDrive\Рабочий стол\МИФИ\Практикум\Программирование на Python\!Git\project-2_Novosel_26-555\.venv'
+set -gx VIRTUAL_ENV 'D:\!Git\project-2_Novosel_26-555\.venv'
 if string match -qr 'CYGWIN|MSYS|MINGW' (uname); and command -s cygpath >/dev/null
     set -gx VIRTUAL_ENV (cygpath -u "$VIRTUAL_ENV")
 end
