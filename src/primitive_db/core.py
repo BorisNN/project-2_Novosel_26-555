@@ -126,3 +126,18 @@ def delete(table_data, where_clause):
         for row in table_data
         if not matches_where(row, where_clause)
     ]
+
+def validate_clause(schema, clause):
+    """Проверяет имена столбцов и типы значений условия."""
+    for column, value in clause.items():
+        if column not in schema:
+            raise ValueError(
+                f'Столбец "{column}" не существует.'
+            )
+
+        expected_type = TYPE_MAPPING[schema[column]]
+
+        if type(value) is not expected_type:
+            raise ValueError(
+                f'Столбец "{column}" требует тип {schema[column]}.'
+            )
