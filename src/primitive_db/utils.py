@@ -37,3 +37,13 @@ def save_table_data(table_name, data):
 
     with open(file_path, "w", encoding="utf-8") as file:
         json.dump(data, file, indent=2, ensure_ascii=False)
+
+
+def remove_table_data(table_name):
+    """Удаляет файл записей таблицы, если он существует."""
+    file_path = os.path.join(DATA_DIR, f"{table_name}.json")
+
+    try:
+        os.remove(file_path)
+    except FileNotFoundError:
+        pass

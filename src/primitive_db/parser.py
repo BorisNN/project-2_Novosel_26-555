@@ -95,3 +95,34 @@ def parse_values(text):
 
     values.append(parse_value("".join(current)))
     return values
+
+def split_keyword(text, keyword):
+    """Разделяет команду по ключевому слову вне кавычек."""
+    marker = f" {keyword} "
+    quote = None
+    escaped = False
+
+    for index, character in enumerate(text):
+        if escaped:
+            escaped = False
+            continue
+
+        if quote is not None:
+            if character == "\\":
+                escaped = True
+            elif character == quote:
+                quote = None
+            continue
+
+        if character in ("'", '"'):
+            quote = character
+            continue
+
+        if text.startswith(marker, index):
+            return (
+                text[:index].strip(),
+                True,
+                text[index + len(marker):].strip(),
+            )
+
+    return text.strip(), False, ""

@@ -6,16 +6,23 @@ from prettytable import PrettyTable
 from primitive_db.constants import ID_COLUMN, META_FILE
 from primitive_db.core import (
     create_table,
+    delete,
     drop_table,
     insert,
     list_tables,
     select,
+    update,
     validate_clause,
 )
-from primitive_db.parser import parse_assignment, parse_values
+from primitive_db.parser import (
+    parse_assignment,
+    parse_values,
+    split_keyword,
+)
 from primitive_db.utils import (
     load_metadata,
     load_table_data,
+    remove_table_data,
     save_metadata,
     save_table_data,
 )
@@ -30,9 +37,32 @@ def print_help():
     print("insert into <имя> values (...) - добавить запись")
     print("select from <имя> - показать все записи")
     print("select from <имя> where <столбец> = <значение> - выборка")
+    print(
+        "update <имя> set <столбец> = <значение> "
+        "where <столбец> = <значение> - обновить записи"
+    )
+    print(
+        "delete from <имя> where <столбец> = <значение> "
+        "- удалить записи"
+    )
     print("info <имя> - показать информацию о таблице")
     print("help - показать справку")
     print("exit - выйти из программы\n")
+
+
+def get_table_schema(table_name):
+    """Проверяет существование таблицы и возвращает её схему."""
+    if not table_name.isidentifier():
+        raise ValueError("Некорректное имя таблицы.")
+
+    metadata = load_metadata()
+
+    if table_name not in metadata:
+        raise ValueError(
+            f'Таблица "{table_name}" не существует.'
+        )
+
+    return metadata[table_name]
 
 
 def handle_create_table(args):
@@ -69,40 +99,39 @@ def handle_list_tables():
 
 
 def handle_drop_table(args):
-    """Удаляет таблицу из метаданных."""
+    """Удаляет схему таблицы и файл её записей."""
     if len(args) != 1:
         raise ValueError("Укажите ровно одно имя таблицы.")
 
     table_name = args[0]
+    get_table_schema(table_name)
     metadata = load_metadata()
 
     metadata = drop_table(metadata, table_name)
     save_metadata(META_FILE, metadata)
+    remove_table_data(table_name)
 
     print(f'Таблица "{table_name}" успешно удалена.')
 
 
 def handle_insert(command_text):
     """Разбирает insert и сохраняет новую запись."""
-    header, separator, values_text = command_text.partition(" values ")
-
-    if not separator:
-        raise ValueError(
-            "Формат: insert into <таблица> values (...)"
-        )
-
+    header, found, values_text = split_keyword(
+        command_text, "values"
+    )
     args = shlex.split(header)
 
-    if len(args) != 3 or args[:2] != ["insert", "into"]:
+    if (
+        not found
+        or len(args) != 3
+        or args[:2] != ["insert", "into"]
+    ):
         raise ValueError(
             "Формат: insert into <таблица> values (...)"
         )
 
     table_name = args[2]
-
-    if not table_name.isidentifier():
-        raise ValueError("Некорректное имя таблицы.")
-
+    get_table_schema(table_name)
     values = parse_values(values_text)
     metadata = load_metadata()
 
@@ -119,7 +148,9 @@ def handle_insert(command_text):
 
 def handle_select(command_text):
     """Выводит все записи или выборку по условию."""
-    header, separator, condition = command_text.partition(" where ")
+    header, found, condition = split_keyword(
+        command_text, "where"
+    )
     args = shlex.split(header)
 
     if len(args) != 3 or args[:2] != ["select", "from"]:
@@ -128,17 +159,10 @@ def handle_select(command_text):
         )
 
     table_name = args[2]
-    metadata = load_metadata()
-
-    if table_name not in metadata:
-        raise ValueError(
-            f'Таблица "{table_name}" не существует.'
-        )
-
-    schema = metadata[table_name]
+    schema = get_table_schema(table_name)
     where_clause = None
 
-    if separator:
+    if found:
         where_clause = parse_assignment(condition)
         validate_clause(schema, where_clause)
 
@@ -157,22 +181,100 @@ def handle_select(command_text):
     print(table)
 
 
+def handle_update(command_text):
+    """Обновляет подходящие записи и сохраняет изменения."""
+    header, found_set, remainder = split_keyword(
+        command_text, "set"
+    )
+    set_text, found_where, where_text = split_keyword(
+        remainder, "where"
+    )
+    args = shlex.split(header)
+
+    if (
+        not found_set
+        or not found_where
+        or len(args) != 2
+        or args[0] != "update"
+    ):
+        raise ValueError(
+            "Формат: update <таблица> set столбец = значение "
+            "where столбец = значение"
+        )
+
+    table_name = args[1]
+    schema = get_table_schema(table_name)
+
+    set_clause = parse_assignment(set_text)
+    where_clause = parse_assignment(where_text)
+
+    validate_clause(schema, set_clause)
+    validate_clause(schema, where_clause)
+
+    table_data = load_table_data(table_name)
+    matched_rows = select(table_data, where_clause)
+    table_data = update(table_data, set_clause, where_clause)
+    save_table_data(table_name, table_data)
+
+    if not matched_rows:
+        print("Подходящие записи не найдены.")
+        return
+
+    for row in matched_rows:
+        print(
+            f'Запись с ID={row[ID_COLUMN]} в таблице '
+            f'"{table_name}" успешно обновлена.'
+        )
+
+
+def handle_delete(command_text):
+    """Удаляет подходящие записи и сохраняет изменения."""
+    header, found, condition = split_keyword(
+        command_text, "where"
+    )
+    args = shlex.split(header)
+
+    if (
+        not found
+        or len(args) != 3
+        or args[:2] != ["delete", "from"]
+    ):
+        raise ValueError(
+            "Формат: delete from <таблица> where столбец = значение"
+        )
+
+    table_name = args[2]
+    schema = get_table_schema(table_name)
+    where_clause = parse_assignment(condition)
+    validate_clause(schema, where_clause)
+
+    table_data = load_table_data(table_name)
+    matched_rows = select(table_data, where_clause)
+    table_data = delete(table_data, where_clause)
+    save_table_data(table_name, table_data)
+
+    if not matched_rows:
+        print("Подходящие записи не найдены.")
+        return
+
+    for row in matched_rows:
+        print(
+            f'Запись с ID={row[ID_COLUMN]} успешно удалена '
+            f'из таблицы "{table_name}".'
+        )
+
+
 def handle_info(args):
     """Показывает схему таблицы и количество записей."""
     if len(args) != 1:
         raise ValueError("Укажите ровно одно имя таблицы.")
 
     table_name = args[0]
-    metadata = load_metadata()
-
-    if table_name not in metadata:
-        raise ValueError(
-            f'Таблица "{table_name}" не существует.'
-        )
+    schema = get_table_schema(table_name)
 
     columns_str = ", ".join(
         f"{column}:{column_type}"
-        for column, column_type in metadata[table_name].items()
+        for column, column_type in schema.items()
     )
     table_data = load_table_data(table_name)
 
@@ -206,6 +308,14 @@ def run():
 
             if command == "select":
                 handle_select(user_input)
+                continue
+
+            if command == "update":
+                handle_update(user_input)
+                continue
+
+            if command == "delete":
+                handle_delete(user_input)
                 continue
 
             args = shlex.split(user_input)
