@@ -3,3 +3,8 @@ DATA_DIR = "data"
 VALID_TYPES = ("int", "str", "bool")
 ID_COLUMN = "ID"
 ID_TYPE = "int"
+TYPE_MAPPING = {
+    "int": int,
+    "str": str,
+    "bool": bool,
+}
