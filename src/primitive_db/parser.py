@@ -47,3 +47,51 @@ def parse_assignment(text):
 
     value = parse_value(value_text)
     return {column: value}
+
+def parse_values(text):
+    """Разбирает значения в скобках с учётом кавычек."""
+    text = text.strip()
+
+    if not text.startswith("(") or not text.endswith(")"):
+        raise ValueError("Значения должны быть внутри скобок.")
+
+    content = text[1:-1].strip()
+
+    if not content:
+        return []
+
+    values = []
+    current = []
+    quote = None
+    escaped = False
+
+    for character in content:
+        if escaped:
+            current.append(character)
+            escaped = False
+            continue
+
+        if quote is not None:
+            current.append(character)
+
+            if character == "\\":
+                escaped = True
+            elif character == quote:
+                quote = None
+
+        elif character in ("'", '"'):
+            quote = character
+            current.append(character)
+
+        elif character == ",":
+            values.append(parse_value("".join(current)))
+            current = []
+
+        else:
+            current.append(character)
+
+    if quote is not None:
+        raise ValueError("Строка должна быть в парных кавычках.")
+
+    values.append(parse_value("".join(current)))
+    return values
