@@ -7,3 +7,5 @@ __pycache__/
 .ruff_cache/
 db_meta.json
 data/
+.venv-wsl/
+recordings/
