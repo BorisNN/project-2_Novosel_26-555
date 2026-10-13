@@ -86,3 +86,43 @@ def insert(metadata, table_name, values):
 
     table_data.append(new_record)
     return table_data
+
+def matches_where(row, where_clause):
+    """Проверяет соответствие записи условию."""
+    return all(
+        row[column] == value
+        for column, value in where_clause.items()
+    )
+
+
+def select(table_data, where_clause=None):
+    """Возвращает все записи или записи по условию."""
+    if where_clause is None:
+        return table_data
+
+    return [
+        row
+        for row in table_data
+        if matches_where(row, where_clause)
+    ]
+
+
+def update(table_data, set_clause, where_clause):
+    """Обновляет все записи, соответствующие условию."""
+    if ID_COLUMN in set_clause:
+        raise ValueError("Изменять ID нельзя.")
+
+    for row in table_data:
+        if matches_where(row, where_clause):
+            row.update(set_clause)
+
+    return table_data
+
+
+def delete(table_data, where_clause):
+    """Удаляет записи по условию и возвращает оставшиеся."""
+    return [
+        row
+        for row in table_data
+        if not matches_where(row, where_clause)
+    ]
