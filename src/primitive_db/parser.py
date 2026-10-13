@@ -33,3 +33,17 @@ def parse_value(text):
         raise ValueError(
             "Ожидалось целое число, true, false или строка в кавычках."
         ) from None
+
+def parse_assignment(text):
+    """Разбирает выражение вида столбец = значение."""
+    column, separator, value_text = text.partition("=")
+    column = column.strip()
+
+    if not separator:
+        raise ValueError("В условии должен быть знак =.")
+
+    if not column or not column.isidentifier():
+        raise ValueError("Некорректное имя столбца.")
+
+    value = parse_value(value_text)
+    return {column: value}
