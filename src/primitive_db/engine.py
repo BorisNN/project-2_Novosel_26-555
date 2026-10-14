@@ -136,6 +136,10 @@ def handle_insert(command_text):
     metadata = load_metadata()
 
     table_data = insert(metadata, table_name, values)
+
+    if table_data is None:
+        return
+
     save_table_data(table_name, table_data)
 
     new_id = table_data[-1][ID_COLUMN]

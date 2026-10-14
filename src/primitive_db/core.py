@@ -4,6 +4,7 @@ from primitive_db.constants import (
     TYPE_MAPPING,
     VALID_TYPES,
 )
+from primitive_db.decorators import handle_db_errors
 from primitive_db.utils import load_table_data
 
 
@@ -41,6 +42,7 @@ def list_tables(metadata):
     """Возвращает список имён всех таблиц."""
     return list(metadata.keys())
 
+@handle_db_errors
 def insert(metadata, table_name, values):
     """Добавляет запись с автоматическим ID и возвращает данные."""
     if table_name not in metadata:
