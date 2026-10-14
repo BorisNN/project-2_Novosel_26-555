@@ -77,6 +77,10 @@ def handle_create_table(args):
     metadata = load_metadata()
 
     metadata = create_table(metadata, table_name, columns)
+
+    if metadata is None:
+        return
+
     save_metadata(META_FILE, metadata)
 
     columns_str = ", ".join(
@@ -108,6 +112,10 @@ def handle_drop_table(args):
     metadata = load_metadata()
 
     metadata = drop_table(metadata, table_name)
+
+    if metadata is None:
+        return
+
     save_metadata(META_FILE, metadata)
     remove_table_data(table_name)
 
@@ -173,6 +181,9 @@ def handle_select(command_text):
     table_data = load_table_data(table_name)
     selected_rows = select(table_data, where_clause)
 
+    if selected_rows is None:
+        return
+
     table = PrettyTable()
     table.field_names = list(schema)
 
@@ -217,7 +228,15 @@ def handle_update(command_text):
 
     table_data = load_table_data(table_name)
     matched_rows = select(table_data, where_clause)
+
+    if matched_rows is None:
+        return
+
     table_data = update(table_data, set_clause, where_clause)
+
+    if table_data is None:
+        return
+
     save_table_data(table_name, table_data)
 
     if not matched_rows:
@@ -254,7 +273,15 @@ def handle_delete(command_text):
 
     table_data = load_table_data(table_name)
     matched_rows = select(table_data, where_clause)
+
+    if matched_rows is None:
+        return
+
     table_data = delete(table_data, where_clause)
+
+    if table_data is None:
+        return
+
     save_table_data(table_name, table_data)
 
     if not matched_rows:

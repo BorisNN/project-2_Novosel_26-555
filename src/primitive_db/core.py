@@ -8,6 +8,7 @@ from primitive_db.decorators import handle_db_errors
 from primitive_db.utils import load_table_data
 
 
+@handle_db_errors
 def create_table(metadata, table_name, columns):
     """Создаёт таблицу и возвращает обновлённые метаданные."""
     if table_name in metadata:
@@ -29,7 +30,7 @@ def create_table(metadata, table_name, columns):
     metadata[table_name] = {ID_COLUMN: ID_TYPE, **parsed_columns}
     return metadata
 
-
+@handle_db_errors
 def drop_table(metadata, table_name):
     """Удаляет таблицу и возвращает обновлённые метаданные."""
     if table_name not in metadata:
@@ -96,7 +97,7 @@ def matches_where(row, where_clause):
         for column, value in where_clause.items()
     )
 
-
+@handle_db_errors
 def select(table_data, where_clause=None):
     """Возвращает все записи или записи по условию."""
     if where_clause is None:
@@ -108,7 +109,7 @@ def select(table_data, where_clause=None):
         if matches_where(row, where_clause)
     ]
 
-
+@handle_db_errors
 def update(table_data, set_clause, where_clause):
     """Обновляет все записи, соответствующие условию."""
     if ID_COLUMN in set_clause:
@@ -120,7 +121,7 @@ def update(table_data, set_clause, where_clause):
 
     return table_data
 
-
+@handle_db_errors
 def delete(table_data, where_clause):
     """Удаляет записи по условию и возвращает оставшиеся."""
     return [
