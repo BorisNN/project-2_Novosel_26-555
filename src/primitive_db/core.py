@@ -4,7 +4,11 @@ from primitive_db.constants import (
     TYPE_MAPPING,
     VALID_TYPES,
 )
-from primitive_db.decorators import confirm_action, handle_db_errors
+from primitive_db.decorators import (
+    confirm_action,
+    handle_db_errors,
+    log_time,
+)
 from primitive_db.utils import load_table_data
 
 
@@ -45,6 +49,7 @@ def list_tables(metadata):
     return list(metadata.keys())
 
 @handle_db_errors
+@log_time
 def insert(metadata, table_name, values):
     """Добавляет запись с автоматическим ID и возвращает данные."""
     if table_name not in metadata:
@@ -99,6 +104,7 @@ def matches_where(row, where_clause):
     )
 
 @handle_db_errors
+@log_time
 def select(table_data, where_clause=None):
     """Возвращает все записи или записи по условию."""
     if where_clause is None:

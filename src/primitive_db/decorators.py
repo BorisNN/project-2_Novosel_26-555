@@ -1,3 +1,5 @@
+import time
+
 import prompt
 
 
@@ -54,3 +56,21 @@ def confirm_action(action_name):
         return wrapper
 
     return decorator
+
+def log_time(func):
+    """Измеряет и выводит время выполнения функции."""
+    def wrapper(*args, **kwargs):
+        """Вызывает функцию и измеряет её длительность."""
+        started_at = time.monotonic()
+        result = func(*args, **kwargs)
+        elapsed = time.monotonic() - started_at
+
+        print(
+            f"Функция {func.__name__} выполнилась "
+            f"за {elapsed:.3f} секунд"
+        )
+        return result
+
+    wrapper.__name__ = func.__name__
+    wrapper.__doc__ = func.__doc__
+    return wrapper
