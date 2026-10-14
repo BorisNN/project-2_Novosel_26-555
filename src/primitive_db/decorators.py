@@ -74,3 +74,21 @@ def log_time(func):
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
     return wrapper
+
+def create_cacher():
+    """Создаёт функцию с собственным кэшем в замыкании."""
+    cache = {}
+
+    def cache_result(key, value_func):
+        """Возвращает сохранённый результат или вычисляет новый."""
+        if key in cache:
+            return cache[key]
+
+        result = value_func()
+
+        if result is not None:
+            cache[key] = result
+
+        return result
+
+    return cache_result

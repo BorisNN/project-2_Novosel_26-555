@@ -1,3 +1,4 @@
+import json
 import shlex
 
 import prompt
@@ -14,6 +15,7 @@ from primitive_db.core import (
     update,
     validate_clause,
 )
+from primitive_db.decorators import create_cacher
 from primitive_db.parser import (
     parse_assignment,
     parse_values,
@@ -27,6 +29,7 @@ from primitive_db.utils import (
     save_table_data,
 )
 
+select_cache = create_cacher()
 
 def print_help():
     """Выводит список доступных команд."""
@@ -159,7 +162,7 @@ def handle_insert(command_text):
 
 
 def handle_select(command_text):
-    """Выводит все записи или выборку по условию."""
+    """Выводит выборку, используя кэш одинаковых запросов."""
     header, found, condition = split_keyword(
         command_text, "where"
     )
@@ -179,7 +182,22 @@ def handle_select(command_text):
         validate_clause(schema, where_clause)
 
     table_data = load_table_data(table_name)
-    selected_rows = select(table_data, where_clause)
+
+    cache_key = json.dumps(
+        {
+            "table": table_name,
+            "schema": schema,
+            "data": table_data,
+            "where": where_clause,
+        },
+        sort_keys=True,
+        ensure_ascii=False,
+    )
+
+    selected_rows = select_cache(
+        cache_key,
+        lambda: select(table_data, where_clause),
+    )
 
     if selected_rows is None:
         return
