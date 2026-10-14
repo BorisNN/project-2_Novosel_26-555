@@ -51,3 +51,6 @@ exit
 
 ### Демонстрация CRUD-операций
 https://asciinema.org/a/DV6oWZ1xBg5xUiM0
+
+## Финальная демонстрация
+https://asciinema.org/a/ZQyk8fVipnp3j3QE
