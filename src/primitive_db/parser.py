@@ -34,6 +34,7 @@ def parse_value(text):
             "Ожидалось целое число, true, false или строка в кавычках."
         ) from None
 
+
 def parse_assignment(text):
     """Разбирает выражение вида столбец = значение."""
     column, separator, value_text = text.partition("=")
@@ -47,6 +48,7 @@ def parse_assignment(text):
 
     value = parse_value(value_text)
     return {column: value}
+
 
 def parse_values(text):
     """Разбирает значения в скобках с учётом кавычек."""
@@ -96,6 +98,7 @@ def parse_values(text):
     values.append(parse_value("".join(current)))
     return values
 
+
 def split_keyword(text, keyword):
     """Разделяет команду по ключевому слову вне кавычек."""
     marker = f" {keyword} "
@@ -122,7 +125,7 @@ def split_keyword(text, keyword):
             return (
                 text[:index].strip(),
                 True,
-                text[index + len(marker):].strip(),
+                text[index + len(marker) :].strip(),
             )
 
     return text.strip(), False, ""

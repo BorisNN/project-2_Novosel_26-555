@@ -5,6 +5,7 @@ import prompt
 
 def handle_db_errors(func):
     """Перехватывает ошибки базы данных и выводит сообщение."""
+
     def wrapper(*args, **kwargs):
         """Вызывает функцию с обработкой ошибок."""
         try:
@@ -15,9 +16,7 @@ def handle_db_errors(func):
                 "Возможно, база данных не инициализирована."
             )
         except KeyError as error:
-            print(
-                f"Ошибка: Таблица или столбец {error} не найден."
-            )
+            print(f"Ошибка: Таблица или столбец {error} не найден.")
         except ValueError as error:
             print(f"Ошибка валидации: {error}")
         except OSError as error:
@@ -32,14 +31,15 @@ def handle_db_errors(func):
 
 def confirm_action(action_name):
     """Создаёт декоратор подтверждения опасного действия."""
+
     def decorator(func):
         """Оборачивает функцию запросом подтверждения."""
+
         def wrapper(*args, **kwargs):
             """Выполняет действие только после подтверждения."""
             try:
                 answer = prompt.string(
-                    f'Вы уверены, что хотите выполнить '
-                    f'"{action_name}"? [y/n]: '
+                    f'Вы уверены, что хотите выполнить "{action_name}"? [y/n]: '
                 )
             except (EOFError, KeyboardInterrupt):
                 print("\nОперация отменена.")
@@ -57,23 +57,23 @@ def confirm_action(action_name):
 
     return decorator
 
+
 def log_time(func):
     """Измеряет и выводит время выполнения функции."""
+
     def wrapper(*args, **kwargs):
         """Вызывает функцию и измеряет её длительность."""
         started_at = time.monotonic()
         result = func(*args, **kwargs)
         elapsed = time.monotonic() - started_at
 
-        print(
-            f"Функция {func.__name__} выполнилась "
-            f"за {elapsed:.3f} секунд"
-        )
+        print(f"Функция {func.__name__} выполнилась за {elapsed:.3f} секунд")
         return result
 
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
     return wrapper
+
 
 def create_cacher():
     """Создаёт функцию с собственным кэшем в замыкании."""

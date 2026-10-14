@@ -31,6 +31,7 @@ from primitive_db.utils import (
 
 select_cache = create_cacher()
 
+
 def print_help():
     """Выводит список доступных команд."""
     print("\n***Управление таблицами и записями***")
@@ -44,10 +45,7 @@ def print_help():
         "update <имя> set <столбец> = <значение> "
         "where <столбец> = <значение> - обновить записи"
     )
-    print(
-        "delete from <имя> where <столбец> = <значение> "
-        "- удалить записи"
-    )
+    print("delete from <имя> where <столбец> = <значение> - удалить записи")
     print("info <имя> - показать информацию о таблице")
     print("help - показать справку")
     print("exit - выйти из программы\n")
@@ -61,9 +59,7 @@ def get_table_schema(table_name):
     metadata = load_metadata()
 
     if table_name not in metadata:
-        raise ValueError(
-            f'Таблица "{table_name}" не существует.'
-        )
+        raise ValueError(f'Таблица "{table_name}" не существует.')
 
     return metadata[table_name]
 
@@ -71,9 +67,7 @@ def get_table_schema(table_name):
 def handle_create_table(args):
     """Создаёт таблицу и сохраняет метаданные."""
     if len(args) < 2:
-        raise ValueError(
-            "Укажите имя таблицы и хотя бы один столбец."
-        )
+        raise ValueError("Укажите имя таблицы и хотя бы один столбец.")
 
     table_name = args[0]
     columns = args[1:]
@@ -91,10 +85,7 @@ def handle_create_table(args):
         for column, column_type in metadata[table_name].items()
     )
 
-    print(
-        f'Таблица "{table_name}" успешно создана '
-        f"со столбцами: {columns_str}"
-    )
+    print(f'Таблица "{table_name}" успешно создана со столбцами: {columns_str}')
 
 
 def handle_list_tables():
@@ -127,19 +118,11 @@ def handle_drop_table(args):
 
 def handle_insert(command_text):
     """Разбирает insert и сохраняет новую запись."""
-    header, found, values_text = split_keyword(
-        command_text, "values"
-    )
+    header, found, values_text = split_keyword(command_text, "values")
     args = shlex.split(header)
 
-    if (
-        not found
-        or len(args) != 3
-        or args[:2] != ["insert", "into"]
-    ):
-        raise ValueError(
-            "Формат: insert into <таблица> values (...)"
-        )
+    if not found or len(args) != 3 or args[:2] != ["insert", "into"]:
+        raise ValueError("Формат: insert into <таблица> values (...)")
 
     table_name = args[2]
     get_table_schema(table_name)
@@ -155,23 +138,16 @@ def handle_insert(command_text):
 
     new_id = table_data[-1][ID_COLUMN]
 
-    print(
-        f'Запись с ID={new_id} успешно добавлена '
-        f'в таблицу "{table_name}".'
-    )
+    print(f'Запись с ID={new_id} успешно добавлена в таблицу "{table_name}".')
 
 
 def handle_select(command_text):
     """Выводит выборку, используя кэш одинаковых запросов."""
-    header, found, condition = split_keyword(
-        command_text, "where"
-    )
+    header, found, condition = split_keyword(command_text, "where")
     args = shlex.split(header)
 
     if len(args) != 3 or args[:2] != ["select", "from"]:
-        raise ValueError(
-            "Формат: select from <таблица> [where столбец = значение]"
-        )
+        raise ValueError("Формат: select from <таблица> [where столбец = значение]")
 
     table_name = args[2]
     schema = get_table_schema(table_name)
@@ -206,33 +182,20 @@ def handle_select(command_text):
     table.field_names = list(schema)
 
     for row in selected_rows:
-        table.add_row([
-            row[column]
-            for column in table.field_names
-        ])
+        table.add_row([row[column] for column in table.field_names])
 
     print(table)
 
 
 def handle_update(command_text):
     """Обновляет подходящие записи и сохраняет изменения."""
-    header, found_set, remainder = split_keyword(
-        command_text, "set"
-    )
-    set_text, found_where, where_text = split_keyword(
-        remainder, "where"
-    )
+    header, found_set, remainder = split_keyword(command_text, "set")
+    set_text, found_where, where_text = split_keyword(remainder, "where")
     args = shlex.split(header)
 
-    if (
-        not found_set
-        or not found_where
-        or len(args) != 2
-        or args[0] != "update"
-    ):
+    if not found_set or not found_where or len(args) != 2 or args[0] != "update":
         raise ValueError(
-            "Формат: update <таблица> set столбец = значение "
-            "where столбец = значение"
+            "Формат: update <таблица> set столбец = значение where столбец = значение"
         )
 
     table_name = args[1]
@@ -263,26 +226,17 @@ def handle_update(command_text):
 
     for row in matched_rows:
         print(
-            f'Запись с ID={row[ID_COLUMN]} в таблице '
-            f'"{table_name}" успешно обновлена.'
+            f'Запись с ID={row[ID_COLUMN]} в таблице "{table_name}" успешно обновлена.'
         )
 
 
 def handle_delete(command_text):
     """Удаляет подходящие записи и сохраняет изменения."""
-    header, found, condition = split_keyword(
-        command_text, "where"
-    )
+    header, found, condition = split_keyword(command_text, "where")
     args = shlex.split(header)
 
-    if (
-        not found
-        or len(args) != 3
-        or args[:2] != ["delete", "from"]
-    ):
-        raise ValueError(
-            "Формат: delete from <таблица> where столбец = значение"
-        )
+    if not found or len(args) != 3 or args[:2] != ["delete", "from"]:
+        raise ValueError("Формат: delete from <таблица> where столбец = значение")
 
     table_name = args[2]
     schema = get_table_schema(table_name)
@@ -308,8 +262,7 @@ def handle_delete(command_text):
 
     for row in matched_rows:
         print(
-            f'Запись с ID={row[ID_COLUMN]} успешно удалена '
-            f'из таблицы "{table_name}".'
+            f'Запись с ID={row[ID_COLUMN]} успешно удалена из таблицы "{table_name}".'
         )
 
 
@@ -322,8 +275,7 @@ def handle_info(args):
     schema = get_table_schema(table_name)
 
     columns_str = ", ".join(
-        f"{column}:{column_type}"
-        for column, column_type in schema.items()
+        f"{column}:{column_type}" for column, column_type in schema.items()
     )
     table_data = load_table_data(table_name)
 
@@ -371,16 +323,12 @@ def run():
 
             if command == "exit":
                 if len(args) != 1:
-                    raise ValueError(
-                        "Команда exit не принимает аргументы."
-                    )
+                    raise ValueError("Команда exit не принимает аргументы.")
                 break
 
             elif command == "help":
                 if len(args) != 1:
-                    raise ValueError(
-                        "Команда help не принимает аргументы."
-                    )
+                    raise ValueError("Команда help не принимает аргументы.")
                 print_help()
 
             elif command == "create_table":
@@ -388,9 +336,7 @@ def run():
 
             elif command == "list_tables":
                 if len(args) != 1:
-                    raise ValueError(
-                        "Команда list_tables не принимает аргументы."
-                    )
+                    raise ValueError("Команда list_tables не принимает аргументы.")
                 handle_list_tables()
 
             elif command == "drop_table":
