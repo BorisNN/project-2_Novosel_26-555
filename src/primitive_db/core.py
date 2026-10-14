@@ -4,7 +4,7 @@ from primitive_db.constants import (
     TYPE_MAPPING,
     VALID_TYPES,
 )
-from primitive_db.decorators import handle_db_errors
+from primitive_db.decorators import confirm_action, handle_db_errors
 from primitive_db.utils import load_table_data
 
 
@@ -31,6 +31,7 @@ def create_table(metadata, table_name, columns):
     return metadata
 
 @handle_db_errors
+@confirm_action("удаление таблицы")
 def drop_table(metadata, table_name):
     """Удаляет таблицу и возвращает обновлённые метаданные."""
     if table_name not in metadata:
@@ -122,6 +123,7 @@ def update(table_data, set_clause, where_clause):
     return table_data
 
 @handle_db_errors
+@confirm_action("удаление записей")
 def delete(table_data, where_clause):
     """Удаляет записи по условию и возвращает оставшиеся."""
     return [
